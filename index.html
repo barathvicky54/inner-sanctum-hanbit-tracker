@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
 </head>
 <body>
 
@@ -22,22 +22,19 @@
                 <p>Small habits, big transformation.</p>
 
                 <button id="googleLoginBtn" class="btn">
-                    <span class="btn-label">
-                        Click to Transform
-                    </span>
-                    <span class="btn-hover-label">
-                        ✦ &nbsp;Let's Begin
-                    </span>
+                    <span class="btn-label">Click to Transform</span>
+                    <span class="btn-hover-label">✦ &nbsp;Let's Begin</span>
                 </button>
             </div>
         </div>
 
         <div class="right-pane">
-            <lottie-player 
-                src="https://lottie.host/9459ace9-92bc-4d49-9c15-4b18f93c7666/tJsY3o7i45.json" 
-                style="width: 340px; height: 340px;" 
-                loop autoplay>
-            </lottie-player>
+            <dotlottie-player
+                src="https://lottie.host/9459ace9-92bc-4d49-9c15-4b18f93c7666/tJsY3o7i45.lottie"
+                autoplay
+                loop
+                style="width: 340px; height: 340px;">
+            </dotlottie-player>
         </div>
     </div>
 
