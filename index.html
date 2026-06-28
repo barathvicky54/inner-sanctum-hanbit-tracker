@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inner Sanctum</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
 </head>
@@ -20,15 +23,18 @@
                 <div class="logo-mark">✦</div>
                 <h1>Inner Sanctum</h1>
                 <p>Small habits, big transformation.</p>
-
+                
                 <button id="googleLoginBtn" class="btn">
                     <span class="btn-label">Click to Transform</span>
                     <span class="btn-hover-label">✦ &nbsp;Let's Begin</span>
                 </button>
+                
+                <p id="errorMsg" style="color:#ffe0cc; font-size:13px; margin-top:14px; min-height:18px;"></p>
             </div>
         </div>
 
         <div class="right-pane">
+            <!-- ✅ .lottie format for dotlottie-player -->
             <dotlottie-player
                 src="https://lottie.host/9459ace9-92bc-4d49-9c15-4b18f93c7666/tJsY3o7i45.lottie"
                 autoplay
@@ -41,10 +47,43 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        const auth = getAuth(initializeApp({ /* CONFIG */ }));
-        document.getElementById('googleLoginBtn').onclick = () => {
-            signInWithPopup(auth, new GoogleAuthProvider()).then(() => window.location.href="dashboard.html");
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAglWgvr7RFA48mGLVAeoknCG5FsRz985E",
+            authDomain: "inner-sanctum-habbit-tracker.firebaseapp.com",
+            projectId: "inner-sanctum-habbit-tracker",
+            storageBucket: "inner-sanctum-habbit-tracker.firebasestorage.app",
+            messagingSenderId: "1003791959497",
+            appId: "1:1003791959497:web:fe0750a4d43788d34d5418"
         };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        const btn = document.getElementById('googleLoginBtn');
+        const errorMsg = document.getElementById('errorMsg');
+
+        const adminEmails = ["barathx8@gmail.com", "barathvignesh.r@gmail.com"];
+
+        btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            errorMsg.textContent = '';
+
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                if (adminEmails.includes(user.email)) {
+                    window.location.href = "admin.html";
+                } else {
+                    window.location.href = "dashboard.html";
+                }
+            } catch (err) {
+                btn.disabled = false;
+                console.error("Login Error:", err);
+                errorMsg.textContent = "Login failed: " + err.message;
+            }
+        });
     </script>
 </body>
 </html>
