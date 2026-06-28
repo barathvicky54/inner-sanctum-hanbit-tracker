@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Inner Sanctum</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; padding: 40px; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h1 { color: #2c3e50; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 15px; border: 1px solid #ddd; text-align: center; }
+        th { background: #2c3e50; color: white; }
+        tr:hover { background: #f8f9fa; cursor: pointer; }
+        .download-btn { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Admin Panel</h1>
+            <button id="downloadExcel" class="download-btn">Download Summary Excel</button>
+        </div>
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>User Name</th>
+                    <th>Email Address</th>
+                    <th>Last Active</th>
+                    <th>Total Habits Count</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAglWgvr7RFA48mGLVAeoknCG5FsRz985E",
+            authDomain: "inner-sanctum-habbit-tracker.firebaseapp.com",
+            projectId: "inner-sanctum-habbit-tracker",
+            storageBucket: "inner-sanctum-habbit-tracker.firebasestorage.app",
+            messagingSenderId: "1003791959497",
+            appId: "1:1003791959497:web:fe0750a4d43788d34d5418",
+            measurementId: "G-X157M9JW81"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const tbody = document.getElementById('userTableBody');
+
+        async function loadUsers() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "usersProgress"));
+                tbody.innerHTML = ""; // Clear loader
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const row = document.createElement("tr");
+                    
+                    row.innerHTML = `
+                        <td><strong>${data.displayName || 'No Name Set'}</strong></td>
+                        <td>${data.email || 'N/A'}</td>
+                        <td>${data.lastUpdated || 'Never'}</td>
+                        <td>${data.habits ? data.habits.length : 0}</td>
+                    `;
+                    
+                    // Click to view full profile
+                    row.onclick = () => window.location.href = `view_user.html?email=${data.email}`;
+                    tbody.appendChild(row);
+                });
+            } catch (e) {
+                console.error("Critical Load Error: ", e);
+                tbody.innerHTML = "<tr><td colspan='4'>Error loading data. Check console.</td></tr>";
+            }
+        }
+
+        // Excel Export Function
+        document.getElementById('downloadExcel').addEventListener('click', () => {
+            const table = document.getElementById('userTable');
+            const wb = XLSX.utils.table_to_book(table, {sheet: "User Summary"});
+            XLSX.writeFile(wb, "Inner_Sanctum_User_Report.xlsx");
+        });
+
+        loadUsers();
+    </script>
+</body>
+</html>

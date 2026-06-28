@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inner Sanctum - Dynamic Habit Dashboard</title>
+    <style>
+        :root {
+            --primary-orange: #ff7426;
+            --secondary-orange: #f04e23;
+            --dark-slate: #2c3e50;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background-color: #fdfbf7; 
+            padding: 20px; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: 30px auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(240, 78, 35, 0.05); 
+            border: 1px solid #fcefe9;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #fbeee6;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .header-titles h1 { color: var(--dark-slate); margin: 0; font-size: 28px; font-weight: 700; }
+        .header-titles h2 { color: #7f8c8d; font-size: 14px; margin-top: 5px; letter-spacing: 1px; font-weight: 600; }
+        
+        .profile-area {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        #userWelcomeDisplay {
+            color: var(--dark-slate);
+            font-size: 16px;
+            font-weight: 700;
+        }
+        #userEmailDisplay {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .control-panel {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 12px;
+        }
+        .control-panel input {
+            padding: 12px 16px;
+            width: 280px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .control-panel input:focus {
+            border-color: var(--primary-orange);
+        }
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .add-btn { 
+            background: linear-gradient(135deg, var(--primary-orange), var(--secondary-orange)); 
+            color: white; 
+            box-shadow: 0 4px 10px rgba(240, 78, 35, 0.2);
+        }
+        .add-btn:hover { transform: translateY(-1px); }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+        }
+        th, td { 
+            border: 1px solid #f1f5f9; 
+            padding: 14px; 
+            text-align: center; 
+        }
+        th { 
+            background-color: #fafafa; 
+            color: var(--dark-slate); 
+            font-weight: 600;
+        }
+        .habit-input {
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 600;
+            color: #34495e;
+            width: 85%;
+        }
+        .habit-input:focus {
+            border-bottom: 2px solid var(--primary-orange);
+            outline: none;
+        }
+        input[type="checkbox"] { 
+            width: 22px; 
+            height: 22px; 
+            cursor: pointer; 
+            accent-color: var(--primary-orange);
+        }
+        .delete-btn { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; }
+        .logout-btn { background-color: #f1f5f9; color: #64748b; margin-top: 25px; }
+        .logout-btn:hover { background-color: #e2e8f0; color: #334155; }
+
+        .onboarding-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .onboarding-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .onboarding-card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            width: 340px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.4s ease;
+        }
+        .onboarding-overlay.active .onboarding-card {
+            transform: scale(1);
+        }
+        .onboarding-card h3 { margin: 0 0 10px 0; color: var(--dark-slate); font-size: 22px; }
+        .onboarding-card p { color: #64748b; font-size: 14px; margin-bottom: 25px; }
+        .onboarding-card input {
+            width: 90%; padding: 12px; border: 1px solid #e2e8f0;
+            border-radius: 12px; font-size: 15px; margin-bottom: 20px; outline: none;
+        }
+        .onboarding-card input:focus { border-color: var(--primary-orange); }
+        .submit-btn {
+            background: linear-gradient(135deg, var(--primary-orange), var(--secondary-orange));
+            color: white; width: 100%; padding: 12px; border: none; border-radius: 12px;
+            font-weight: 600; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="onboardingOverlay" class="onboarding-overlay">
+        <div class="onboarding-card">
+            <h3>Welcome to Inner Sanctum!</h3>
+            <p>Please enter your name to customize your sanctuary portal.</p>
+            <input type="text" id="userNameInput" placeholder="Your Name">
+            <button id="saveNameBtn" class="submit-btn">Let's Get Started</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-titles">
+                <h1>HABIT TRACKER</h1>
+                <h2>TOP 10 DAILY HABITS</h2>
+            </div>
+            <div class="profile-area">
+                <span id="userWelcomeDisplay">Loading profile...</span>
+                <span id="userEmailDisplay"></span>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <input type="text" id="newHabitName" placeholder="Enter new custom habit...">
+            <button id="addHabitBtn" class="btn add-btn">+ Add Habit</button>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>DAILY HABITS</th>
+                    <th>WEEK 1</th>
+                    <th>WEEK 2</th>
+                    <th>WEEK 3</th>
+                    <th>WEEK 4</th>
+                    <th>WEEK 5</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody id="habitTableBody"></tbody>
+        </table>
+        
+        <button id="logoutBtn" class="btn logout-btn">Logout</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAglWgvr7RFA48mGLVAeoknCG5FsRz985E",
+            authDomain: "inner-sanctum-habbit-tracker.firebaseapp.com",
+            projectId: "inner-sanctum-habbit-tracker",
+            storageBucket: "inner-sanctum-habbit-tracker.firebasestorage.app",
+            messagingSenderId: "1003791959497",
+            appId: "1:1003791959497:web:fe0750a4d43788d34d5418",
+            measurementId: "G-X157M9JW81"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserEmail = "";
+        let userHabits = [];
+        let checkedStates = {};
+        let userName = "";
+
+        const defaultHabits = [
+            "Wake up at 5 AM", "Drink 3L Water", "30 Min Workout", 
+            "Stretching", "Read 10 Pages", "Meditation", 
+            "Skincare Routine", "Limit Social Media", "Track Expenses"
+        ];
+
+        const tableBody = document.getElementById('habitTableBody');
+        const onboardingOverlay = document.getElementById('onboardingOverlay');
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserEmail = user.email;
+                document.getElementById('userEmailDisplay').innerText = currentUserEmail;
+                await loadUserData();
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        async function loadUserData() {
+            const userDocRef = doc(db, "usersProgress", currentUserEmail);
+            const docSnap = await getDoc(userDocRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                // FIX: Check explicitly if displayName is missing or empty string
+                if (!data.displayName || data.displayName.trim() === "") {
+                    userHabits = defaultHabits;
+                    checkedStates = {};
+                    onboardingOverlay.classList.add('active');
+                } else {
+                    userName = data.displayName;
+                    userHabits = data.habits || defaultHabits;
+                    checkedStates = data.ticks || {};
+                    onboardingOverlay.classList.remove('active');
+                    document.getElementById('userWelcomeDisplay').innerText = `Welcome, ${userName}!`;
+                    renderTable();
+                }
+            } else {
+                userHabits = defaultHabits;
+                checkedStates = {};
+                onboardingOverlay.classList.add('active');
+            }
+        }
+
+        document.getElementById('saveNameBtn').addEventListener('click', async () => {
+            const inputName = document.getElementById('userNameInput').value.trim();
+            if(inputName) {
+                userName = inputName;
+                onboardingOverlay.classList.remove('active');
+                document.getElementById('userWelcomeDisplay').innerText = `Welcome, ${userName}!`;
+                await saveToDatabase();
+                renderTable();
+            } else {
+                alert("Please enter your name to continue.");
+            }
+        });
+
+        function renderTable() {
+            tableBody.innerHTML = "";
+            userHabits.forEach((habit, habitIndex) => {
+                const row = document.createElement('tr');
+                
+                let habitCell = `<td><input type="text" class="habit-input" value="${habit}" data-index="${habitIndex}"></td>`;
+                
+                let weekCells = "";
+                for (let week = 1; week <= 5; week++) {
+                    const storageKey = `habit_${habitIndex}_week_${week}`;
+                    const isChecked = checkedStates[storageKey] ? "checked" : "";
+                    weekCells += `<td><input type="checkbox" data-storagekey="${storageKey}" ${isChecked}></td>`;
+                }
+
+                let actionCell = `<td><button class="delete-btn" data-index="${habitIndex}">🗑️</button></td>`;
+                row.innerHTML = habitCell + weekCells + actionCell;
+                tableBody.appendChild(row);
+            });
+
+            attachEventListeners();
+        }
+
+        function attachEventListeners() {
+            tableBody.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', async (e) => {
+                    checkedStates[e.target.dataset.storagekey] = e.target.checked;
+                    await saveToDatabase();
+                });
+            });
+
+            tableBody.querySelectorAll('.habit-input').forEach(input => {
+                input.addEventListener('change', async (e) => {
+                    userHabits[e.target.dataset.index] = e.target.value;
+                    await saveToDatabase();
+                });
+            });
+
+            tableBody.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    userHabits.splice(e.target.dataset.index, 1);
+                    await saveToDatabase();
+                    await loadUserData();
+                });
+            });
+        }
+
+        document.getElementById('addHabitBtn').addEventListener('click', async () => {
+            const nameInput = document.getElementById('newHabitName');
+            const value = nameInput.value.trim();
+            if(value) {
+                userHabits.push(value);
+                nameInput.value = "";
+                await saveToDatabase();
+                renderTable();
+            }
+        });
+
+        async function saveToDatabase() {
+            const userDocRef = doc(db, "usersProgress", currentUserEmail);
+            await setDoc(userDocRef, {
+                email: currentUserEmail,
+                displayName: userName,
+                habits: userHabits,
+                ticks: checkedStates,
+                lastUpdated: new Date().toLocaleString()
+            }, { merge: true });
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => { window.location.href = "index.html"; });
+        });
+    </script>
+</body>
+</html>

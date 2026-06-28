@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin View User</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        th { background: #2c3e50; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="userNameDisplay">Loading User...</h2>
+        <table id="habitTable">
+            <thead>
+                <tr><th>Habit</th><th>Week 1</th><th>Week 2</th><th>Week 3</th><th>Week 4</th><th>Week 5</th></tr>
+            </thead>
+            <tbody id="habitTableBody"></tbody>
+        </table>
+        <br>
+        <button onclick="window.history.back()" style="padding:10px;">Back to Admin</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAglWgvr7RFA48mGLVAeoknCG5FsRz985E",
+            authDomain: "inner-sanctum-habbit-tracker.firebaseapp.com",
+            projectId: "inner-sanctum-habbit-tracker",
+            storageBucket: "inner-sanctum-habbit-tracker.firebasestorage.app",
+            messagingSenderId: "1003791959497",
+            appId: "1:1003791959497:web:fe0750a4d43788d34d5418",
+            measurementId: "G-X157M9JW81"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        const email = new URLSearchParams(window.location.search).get('email');
+        const tbody = document.getElementById('habitTableBody');
+
+        async function loadProfile() {
+            const docSnap = await getDoc(doc(db, "usersProgress", email));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('userNameDisplay').innerText = `Viewing: ${data.displayName}`;
+                
+                data.habits.forEach((habit, idx) => {
+                    let row = `<tr><td>${habit}</td>`;
+                    for(let w=1; w<=5; w++) {
+                        const isChecked = data.ticks[`habit_${idx}_week_${w}`] ? "checked" : "";
+                        // 'disabled' attribute makes it View Only!
+                        row += `<td><input type="checkbox" ${isChecked} disabled></td>`;
+                    }
+                    row += "</tr>";
+                    tbody.innerHTML += row;
+                });
+            }
+        }
+        loadProfile();
+    </script>
+</body>
+</html>
